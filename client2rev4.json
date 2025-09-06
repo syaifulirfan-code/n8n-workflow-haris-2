@@ -1,0 +1,1562 @@
+{
+  "name": "client2rev4",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cd37d3a8-d11c-444b-a879-2bd3ca066b41",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -7440,
+        -64
+      ],
+      "id": "0726efd8-5ed8-44dd-a9e7-8ff6ff94378f",
+      "name": "Webhook",
+      "webhookId": "cd37d3a8-d11c-444b-a879-2bd3ca066b41"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -7136,
+        -64
+      ],
+      "id": "0b5ca6ea-db99-4966-891b-67726d2462ae",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "=anda adalah seorang asisten yang mampu melakukan pesanan paket sembako dan token listrik . Alur ini mencakup verifikasi identitas dengan ID karyawan , pengecekan limit kredit, dan pencatatan untuk potongan gaji.\n\n\nAlur\n\n1.Chatbot meminta ID karyawan.\n\n2.Setelah ID karyawan dimasukkan, anda harus:\n  -Mencari informasi karyawan menggunakan tool Database_Karyawan3\n  -Jika ID tidak ditemukan, beri pesan: \"ID karyawan tidak ditemukan. Coba lagi atau hubungi admin wa.me/6281383833719\".\n  -Jika ID ditemukan, tampilkan informasi karyawan dan langsung menjalankan tool Database_Produk1 untuk menampilkan daftar paket yang tersedia (tanpa menunggu perintah tambahan dari karyawan)dengan format berikut:\n\"ID ditemukan: Budi Santoso. Sisa limit kredit: Rp300.000.\nSilahkan Pilih paket: (diambil dari tool Database_Produk1 pada kolom Nama_Produk)\"\n3.Karyawan memilih paket yang akan dipesan\n  -Jika karyawan memilih paket token listrik, minta nomor ID Pelanggan PLN\n4. Jika limit kredit tidak mencukupi ikuti skenario ke 3 \n5. kemudian melakukan konfirmasi Pesanan dengan format berikut (Jalankan kedua tool Database_Produk1 dan Database_Karyawan3):\n\"ID :12345\nNama: Budi Santoso\nNomor_Akun: 6281383833719\nNama_Produk: Sembako C\nKode_Produk: Sembako_C\nHarga_Produk: Rp300000\nIsi : 15kg beras, 8L minyak, 30 mie  \nID_PLN: 1234855959\nStatus : berhasil\nPesanan Sembako berhasil. Sisa limit: Rp200.000. Potongan gaji pada 25 Juli 2025.\n\"\n\n### *Contoh Percakapan Chatbot*\n\n\n*Skenario 3: Limit Tidak Cukup*\n- Karyawan: “Pesan”\n- Chatbot: “Masukkan ID karyawan Anda.”\n- Karyawan: “123456”\n- Chatbot: “ID ditemukan: Budi Santoso. Sisa limit kredit: Rp50.000. Pilih paket: 1. Paket Sembako Rp100.000, 2. Paket Sembako Rp200.000, 3. Token Listrik Rp50.000, 4. Token Listrik Rp100.000.”\n- Karyawan: “2”\n- Chatbot: “Limit Anda (Rp50.000) tidak cukup untuk Paket Sembako Rp200.000. Pilih paket lain.”\n\n*Skenario 4: Cek Limit*\n- Karyawan: “Cek Limit”\n- Chatbot: “Masukkan ID karyawan.”\n- Karyawan: “123456”\n- Chatbot: “Sisa limit kredit Anda: Rp300.000.”\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -6704,
+        -336
+      ],
+      "id": "224aefc3-b6c9-48f1-b6fb-f0524b5a8250",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields').item.json.body.sender }}",
+        "contextWindowLength": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -6464,
+        128
+      ],
+      "id": "4f6a40f8-dbb2-462f-ac90-65579a709242",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0944bc14-a4ee-4bb4-b783-a247273ef066",
+              "leftValue": "={{ $('AI Agent').item.json.output.toLowerCase()}}",
+              "rightValue": "berhasil",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -6256,
+        -272
+      ],
+      "id": "377f986e-afd0-4c7b-ad20-47e52c2f8dbb",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -6848,
+        64
+      ],
+      "id": "0d69ba90-b8a9-4a05-bfc1-c390644bfc1b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "GAvMr6WOcydr4bAz",
+          "name": "Groq account 3"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "gunakan selalu tool ini untuk mengecek informasi karyawan berdasarkan ID karyawan seperti nama, nomor, dan limit kredit",
+        "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNnde0i0kmxKU09skmZBzJh1cnJSgE6I6L2mnXA80ii7KM1LQbXoXDBFoMBqBiFc6RXFXxhLb6_PRv/pub?gid=0&single=true&output=csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -6320,
+        144
+      ],
+      "id": "fdfbaf9c-5fb9-4908-8d01-ed0be4c9c8fb",
+      "name": "Database_Karyawan3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('AI Agent').item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6096,
+        -80
+      ],
+      "id": "3c1c367f-b58d-4876-8671-a6ab55031160",
+      "name": "HTTP Request1",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1aFEw5E2cuFNPvk_bwcEfBxdu8mZZfJ698B_s0dnmrKg",
+          "mode": "list",
+          "cachedResultName": "Databse karywan",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aFEw5E2cuFNPvk_bwcEfBxdu8mZZfJ698B_s0dnmrKg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aFEw5E2cuFNPvk_bwcEfBxdu8mZZfJ698B_s0dnmrKg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Karyawan": "={{ $json.output.ID }}",
+            "Nomor_Akun": "={{ $json.output.Nomor }}",
+            "Limit_Kredit": "={{ $json.output['Limit Kredit'] }}"
+          },
+          "matchingColumns": [
+            "ID Karyawan"
+          ],
+          "schema": [
+            {
+              "id": "ID Karyawan",
+              "displayName": "ID Karyawan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nama",
+              "displayName": "Nama",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Nomor_Akun",
+              "displayName": "Nomor_Akun",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Limit_Kredit",
+              "displayName": "Limit_Kredit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -5104,
+        -640
+      ],
+      "id": "89a5011d-352a-4b9a-9c8e-7080a4252087",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aYwBaWoGXrZInwmE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('AI Agent').item.json.output.toLowerCase()}}",
+                    "rightValue": "sembako",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "015f530a-2dc9-42ec-9a84-baa322bdd286"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6a64b773-4884-41f3-a84b-37260f647751",
+                    "leftValue": "={{ $('AI Agent').item.json.output.toLowerCase()}}",
+                    "rightValue": "token listrik",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -5440,
+        -432
+      ],
+      "id": "390c6eba-018b-4e91-a9f7-403314b79eff",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CnPYApe8CT-iEyQTJdsDjsifk4RI2oScUtY0UzvoEI8",
+          "mode": "list",
+          "cachedResultName": "Transaksi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CnPYApe8CT-iEyQTJdsDjsifk4RI2oScUtY0UzvoEI8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CnPYApe8CT-iEyQTJdsDjsifk4RI2oScUtY0UzvoEI8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Karyawan": "={{ $('Information Extractor2').item.json.output.ID }}",
+            "Jenis Pesanan": "={{ $('Information Extractor2').item.json.output['Jenis Pesanan'] }}",
+            "Nominal": "={{ $('Information Extractor2').item.json.output.Nominal }}",
+            "Tanggal": "={{ $now.format('dd-MM-yyyy hh:mm:ss') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID Karyawan",
+              "displayName": "ID Karyawan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Jenis Pesanan",
+              "displayName": "Jenis Pesanan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nominal",
+              "displayName": "Nominal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kode Token",
+              "displayName": "Kode Token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tanggal",
+              "displayName": "Tanggal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -4736,
+        -640
+      ],
+      "id": "fae18e26-a79f-448a-ab9d-eb211cc61e89",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aYwBaWoGXrZInwmE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -4432,
+        -240
+      ],
+      "id": "f81ede06-2ac9-4095-b0a4-0ff10a2c6cf1",
+      "name": "Wait",
+      "webhookId": "5c5c34f9-0368-4651-ad09-4186c50208b6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.digiflazz.com/v1/transaction",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "username",
+              "value": "=wizekagwO2Pg"
+            },
+            {
+              "name": "buyer_sku_code",
+              "value": "={{ $('Crypto').item.json.output.kode_produk }}"
+            },
+            {
+              "name": "customer_no",
+              "value": "={{ $('Information Extractor2').item.json.output['ID Pelanggan PLN'] }}"
+            },
+            {
+              "name": "ref_id",
+              "value": "={{ $('Crypto').item.json.output.ref_id }}"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $('Crypto').item.json.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4224,
+        -288
+      ],
+      "id": "ed76b474-dc0b-4a22-99a5-310205464388",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.status.toLowerCase() }}",
+                    "rightValue": "sukses",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f60cf067-10ed-4dbe-b695-f7c11401cb1e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0cc2c854-0abe-4b5f-a771-319fb9618ad1",
+                    "leftValue": "={{ $json.data.status.toLowerCase() }}",
+                    "rightValue": "gagal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -4016,
+        -400
+      ],
+      "id": "47ab283c-3c38-47fa-aa20-573efb0778d8",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1aFEw5E2cuFNPvk_bwcEfBxdu8mZZfJ698B_s0dnmrKg",
+          "mode": "list",
+          "cachedResultName": "Databse karywan",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aFEw5E2cuFNPvk_bwcEfBxdu8mZZfJ698B_s0dnmrKg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aFEw5E2cuFNPvk_bwcEfBxdu8mZZfJ698B_s0dnmrKg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Karyawan": "={{ $('Crypto').item.json.output.ID }}",
+            "Limit_Kredit": "={{ $('Crypto').item.json.output['Limit Kredit'] }}",
+            "Nomor_Akun": "={{ $('Crypto').item.json.output.Nomor }}"
+          },
+          "matchingColumns": [
+            "ID Karyawan"
+          ],
+          "schema": [
+            {
+              "id": "ID Karyawan",
+              "displayName": "ID Karyawan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nama",
+              "displayName": "Nama",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Nomor_Akun",
+              "displayName": "Nomor_Akun",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Limit_Kredit",
+              "displayName": "Limit_Kredit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -3792,
+        -624
+      ],
+      "id": "6842966e-ad29-43ca-838a-33ffa12f1ae1",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aYwBaWoGXrZInwmE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CnPYApe8CT-iEyQTJdsDjsifk4RI2oScUtY0UzvoEI8",
+          "mode": "list",
+          "cachedResultName": "Transaksi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CnPYApe8CT-iEyQTJdsDjsifk4RI2oScUtY0UzvoEI8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CnPYApe8CT-iEyQTJdsDjsifk4RI2oScUtY0UzvoEI8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Karyawan": "={{ $('Information Extractor2').item.json.output.ID }}",
+            "Jenis Pesanan": "={{ $('Information Extractor2').item.json.output['Jenis Pesanan'] }}",
+            "Nominal": "={{ $('Information Extractor2').item.json.output.Nominal }}",
+            "Tanggal": "={{ $now.format('dd-MM-yyyy hh:mm:ss') }}",
+            "Kode Token": "={{ $('HTTP Request').item.json.data.sn }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID Karyawan",
+              "displayName": "ID Karyawan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Jenis Pesanan",
+              "displayName": "Jenis Pesanan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nominal",
+              "displayName": "Nominal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kode Token",
+              "displayName": "Kode Token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tanggal",
+              "displayName": "Tanggal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -3584,
+        -784
+      ],
+      "id": "48b7042f-babf-4177-b787-720b62bd083f",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aYwBaWoGXrZInwmE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "ID",
+              "description": "ID Karyawan",
+              "required": true
+            },
+            {
+              "name": "Limit Kredit",
+              "type": "number",
+              "description": "sisa limit",
+              "required": true
+            },
+            {
+              "name": "Nama",
+              "description": "Nama Karyawan",
+              "required": true
+            },
+            {
+              "name": "kode_produk",
+              "description": "jika token listrik Rp50000 kode produknya PLN50|jika token listrik Rp1000000 kode produknya PLN100",
+              "required": true
+            },
+            {
+              "name": "Nomor",
+              "description": "nomor karyawan",
+              "required": true
+            },
+            {
+              "name": "Nominal",
+              "type": "number",
+              "description": "harga produk",
+              "required": true
+            },
+            {
+              "name": "Jenis Pesanan",
+              "description": "Sembako atau Token Listrik",
+              "required": true
+            },
+            {
+              "name": "ID Pelanggan PLN",
+              "description": "ID Pelanggan PLN jika ada",
+              "required": true
+            },
+            {
+              "name": "ref_id",
+              "description": "=gunakan ini {{ $now .format('yyyyMMddhhmmss')}}",
+              "required": true
+            },
+            {
+              "name": "Tanggal_Pengambilan",
+              "type": "date",
+              "description": "=tanggal pengambilan di hari jumat minggu depan dari {{ $today.format('dd/MM') }}",
+              "required": true
+            },
+            {
+              "name": "Nama_Produk",
+              "description": "nama produk yang di pesan contoh\" aPket Sembako Rp 100000\"",
+              "required": true
+            },
+            {
+              "name": "Isi",
+              "description": "isi produk"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -6000,
+        -288
+      ],
+      "id": "17cc9d79-74bd-49c3-8ac9-ec62671b134f",
+      "name": "Information Extractor2",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d0166abc-e810-489c-b851-5823a8c7c804",
+              "leftValue": "={{ $('Edit Fields').item.json.body.sender }}",
+              "rightValue": "={{ $json.output.Nomor }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -5616,
+        -240
+      ],
+      "id": "bf06ea99-5066-4cf8-b308-7332426d8b66",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "=Nomor anda tidak sama yang didaftakan pada database kami, silahkan hubungi admin\n📞 CS: 0812-XXXX-XXXX (WhatsApp Only)  \n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -5328,
+        -64
+      ],
+      "id": "17a396e2-c106-4c0e-9fbe-41ef09aa0ef7",
+      "name": "HTTP Request2",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "=Hai {{ $('Information Extractor2').item.json.output.Nama }}! 🎉  \nPESANAN ANDA TELAH DITERIMA  \n\n📌 Detail Order:  \n- Paket: {{ $('Information Extractor2').item.json.output.Nama_Produk }}\n- Isi: {{ $('Information Extractor2').item.json.output.Isi }}\n- Total: Rp{{ $('Information Extractor2').item.json.output.Nominal }} \n- Pembayaran: Potong gaji tgl 25/{{ $today.format('MM').toNumber()+1}}  \n- Pengiriman: Jumat, {{ $('Information Extractor2').item.json.output.Tanggal_Pengambilan.toDateTime().format('dd/MM') }}, ke pos satpam PT Indofood  \n\n🛒 No. Order: SBL-{{ $('Information Extractor2').item.json.output.ref_id }} \n📞 CS: 0812-XXXX-XXXX (WhatsApp Only)  \n\nTerima kasih telah memilih layanan kami!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4272,
+        -720
+      ],
+      "id": "e07ed6da-353a-43f3-9d94-61aa0b39ce17",
+      "name": "HTTP Request4",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "=Hai {{ $('Information Extractor2').item.json.output.Nama }}!  \n⚡ TOKEN LISTRIK ANDA SIAP  \n\n- Nomor Meter: {{ $('Information Extractor2').item.json.output['ID Pelanggan PLN'] }} \n- Nominal: Rp{{ $json.Nominal }}\n- Kode Token: {{ $('HTTP Request').item.json.data.sn }}\n- Masa Aktif: 30 hari  \n- Pembayaran: Potong gaji tgl 25/{{ $today.format('MM').toNumber()+1 }} \n\nSimpan pesan ini sebagai bukti. Terima kasih!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3408,
+        -576
+      ],
+      "id": "cbe72058-5cfa-4916-b5ed-4c665c8228c9",
+      "name": "HTTP Request5",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "=Pembelian Gagal\nNomor ID Pelanggan PLN Anda Salah"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3696,
+        -304
+      ],
+      "id": "87367d13-a9d3-4559-901a-5b1735120482",
+      "name": "HTTP Request6",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "value": "={{\"wizekagwO2Pg\"+\"1d14c462-b0b1-5d65-a8d6-88f3ce9d30f5\"+$json.output.ref_id}}"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        -4976,
+        -384
+      ],
+      "id": "d5fd2b94-af1e-4386-8223-23c3012a9ede",
+      "name": "Crypto",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.digiflazz.com/v1/transaction",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "username",
+              "value": "wizekagwO2Pg"
+            },
+            {
+              "name": "buyer_sku_code",
+              "value": "={{ $json.output.kode_produk }}"
+            },
+            {
+              "name": "customer_no",
+              "value": "={{ $json.output['ID Pelanggan PLN'] }}"
+            },
+            {
+              "name": "ref_id",
+              "value": "={{ $json.output.ref_id }}"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4624,
+        -208
+      ],
+      "id": "9ba72bd2-b534-4a94-83e1-01824178df90",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "toolDescription": "**WAJIB** gunakan **Database_Produk** untuk mendapatkan informasi daftar produk",
+        "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4mZhgK2D6zKgvNqMq5gQL4US__YN8hFC2yiqJxiquQVqKZwWBhnbG_2Mq3Fw9YiMwUI6qZGuKnCLG/pub?gid=0&single=true&output=csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -6176,
+        128
+      ],
+      "id": "c641b54d-d4f7-4492-81fc-722448f97791",
+      "name": "Database_Produk1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "=Pesanan Anda Sedang Diproses"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4464,
+        -432
+      ],
+      "id": "0f79c4f8-ed33-4b65-a544-393a40660b3c",
+      "name": "HTTP Request8",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "llama-4-scout-17b-16e-instruct",
+          "mode": "list",
+          "cachedResultName": "llama-4-scout-17b-16e-instruct"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -6832,
+        -128
+      ],
+      "id": "d5f8559c-bcd9-4fab-b472-b82c2e69dc40",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "8si1JneAEwtGiKQ9",
+          "name": "cerebras"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "llama-4-scout-17b-16e-instruct",
+          "mode": "list",
+          "cachedResultName": "llama-4-scout-17b-16e-instruct"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -5856,
+        -96
+      ],
+      "id": "dd488480-446e-40fc-8e16-a34cbd7a51c2",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "8si1JneAEwtGiKQ9",
+          "name": "cerebras"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -5776,
+        128
+      ],
+      "id": "ad9ae743-8418-42ff-8ef4-350a3425832e",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "WItuxCGXNMu89s8O",
+          "name": "Groq account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fonnte.com/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "={{ $('Edit Fields').item.json.body.sender }}"
+            },
+            {
+              "name": "message",
+              "value": "=Pesanan Anda Sedang Diproses"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -5296,
+        -736
+      ],
+      "id": "1f8a7cce-d01f-42ef-8e7e-49ff333eb5cb",
+      "name": "HTTP Request3",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fZYFuyEI3bvYCES8",
+          "name": "WA710"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-ecttcsas.ap-southeast-1.clawcloudrun.com",
+            "content-type": "application/json",
+            "content-length": "383",
+            "accept-encoding": "gzip",
+            "user-agent": "Go-http-client/2.0",
+            "x-forwarded-for": "103.52.212.50",
+            "x-forwarded-proto": "https",
+            "x-envoy-original-host": "n8n-ecttcsas.ap-southeast-1.clawcloudrun.com",
+            "x-envoy-external-address": "103.52.212.50",
+            "x-request-id": "79787b30-bfa9-4c19-bc9e-91681cf98b41",
+            "x-envoy-decorator-operation": "n8n-kyfmzlqj.ns-8wfkp76n.svc.cluster.local:5678/()(.*).*",
+            "x-envoy-attempt-count": "1",
+            "req-start-time": "1752976542296",
+            "x-real-ip": "103.52.212.50",
+            "x-envoy-route-identifier": "true"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "choices": [],
+            "device": "6281382516710",
+            "extension": "",
+            "filename": "",
+            "inboxid": 49002624,
+            "isforwarded": false,
+            "isgroup": false,
+            "location": "",
+            "member": "",
+            "message": "1",
+            "name": "Haris Munandar, S.Tr.Stat",
+            "pengirim": "6281383833719",
+            "pesan": "1",
+            "pollname": "",
+            "quick": false,
+            "sender": "6281383833719",
+            "storedata": {},
+            "text": "non-button message",
+            "type": "text",
+            "url": "",
+            "username": "6281383833719"
+          },
+          "webhookUrl": "https://n8n-ecttcsas.ap-southeast-1.clawcloudrun.com/webhook/cd37d3a8-d11c-444b-a879-2bd3ca066b41",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "AI Agent": [
+      {
+        "json": {
+          "output": "ID :12345\nNama: Haris Munandar\nNomor_Akun: 6281383833719\nNama_Produk: Sembako C\nKode_Produk: Sembako_C\nHarga_Produk: Rp300000\nIsi : 15kg beras, 8L minyak, 30 mie  \nStatus : berhasil#@8\nPesanan Sembako berhasil. Sisa limit: Rp50.000. Potongan gaji pada 25 Juli 2025."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database_Karyawan3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crypto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor2": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database_Produk1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "990ffa18-2f56-4d5e-a516-7c00d37d895d",
+  "meta": {
+    "instanceId": "a03b017bee0223d3d273d5bf6a9c9ddd284a0dd4ec8826718a798c04b76da692"
+  },
+  "id": "IoGQjJASixZYkFa7",
+  "tags": []
+}
